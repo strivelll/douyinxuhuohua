@@ -1,0 +1,10 @@
+viewport_width: 1440
+viewport_height: 900
+home_timeout_ms: 30000
+hover_retry_seconds: 20
+panel_wait_seconds: 15
+max_retries: 3
+retry_base_delay_s: 2.0
+retry_max_delay_s: 30.0
+cron_expression: "0 9 * * *"
+min_contact_count: 5

@@ -1,0 +1,16 @@
+[project]
+name = "douyin-huohua"
+version = "8.0.0"
+description = "抖音批量续火花 — 自动检测私信火花状态，向已熄灭好友发送激活消息"
+requires-python = ">=3.11"
+dependencies = [
+    "playwright>=1.58",
+    "pydantic-settings>=2.14",
+    "PyYAML>=6.0",
+]
+
+[project.scripts]
+huohua = "src.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["src*", "config*"]

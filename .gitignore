@@ -1,0 +1,22 @@
+# python
+__pycache__/
+*.pyc
+
+# env
+.env
+
+# browser profile
+profile/
+
+# runtime data
+screenshots/
+log/
+cron-*.txt
+
+# os
+.DS_Store
+Thumbs.db
+
+# git
+*.orig
+*.bak
