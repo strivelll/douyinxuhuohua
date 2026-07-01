@@ -1,11 +1,14 @@
 """Page navigation: home, popups, private-message panel, and back-to-panel."""
 
 import asyncio
+import logging
 import random
 
 from playwright.async_api import Page
 
 from config.settings import settings
+logger = logging.getLogger(__name__)
+
 from src.robustness import wait_for_condition
 from src.selectors import POPUP_EVALUATE_JS, WAIT_NAMES_JS, locate_panel, locate_sixin
 
@@ -47,6 +50,7 @@ async def hover_sixin(page: Page) -> bool:
     pos = await locate_sixin(page)
     if not pos:
         return False
+    logger.info("找到私信位置: cx=%d, cy=%d", pos.get("cx", -1), pos.get("cy", -1))
     await page.mouse.move(pos["cx"], pos["cy"], steps=10)
     await asyncio.sleep(3.5)
     return True

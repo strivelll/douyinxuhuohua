@@ -129,12 +129,68 @@ def _panel_by_coordinates(x: int, y: int) -> SelectorStrategy:
     )
 
 
-# ── High-level selector chains ──────────────────────────
+def _anchor_offset(text: str, anchor_text: str, offset_x: int = 0) -> SelectorStrategy:
+    """Find element containing *anchor_text*, then offset to a nearby element."""
+
+    async def locate(page: Page) -> dict | None:
+        # First find the anchor by treewalker
+        anchor = await page.evaluate(
+            f"""() => {{
+                const w = document.createTreeWalker(document.body,4,null,false);
+                let n;
+                while (n = w.nextNode()) {{
+                    const t = (n.textContent||'').trim();
+                    if (t === '{anchor_text}') {{
+                        let el = n.parentElement;
+                        for (let j=0;j<10 && el && el!==document.body;j++) {{
+                            if (el.getBoundingClientRect().width>10) break;
+                            el = el.parentElement;
+                        }}
+                        const cr = el.getBoundingClientRect();
+                        return {{cx: Math.round(cr.x+cr.width/2), cy: Math.round(cr.y+cr.height/2), right: Math.round(cr.right)}};
+                    }}
+                }}
+                return null;
+            }}""",
+        )
+        if not anchor:
+            return None
+        # The target button should be to the right of the anchor
+        # Look for a sibling/following element that is a clickable button
+        target = await page.evaluate(
+            f"""() => {{
+                const left_edge = {anchor['right']};
+                // Find all clickable elements to the right of the anchor
+                const candidates = document.querySelectorAll('div, span, button, a, li');
+                let best = null;
+                let bestDist = Infinity;
+                for (const el of candidates) {{
+                    const r = el.getBoundingClientRect();
+                    if (r.width < 20 || r.height < 20) continue;
+                    if (r.x >= left_edge - 5 && r.x <= left_edge + 200) {{
+                        const dist = r.x - left_edge;
+                        if (dist >= 0 && dist < bestDist) {{
+                            bestDist = dist;
+                            best = el;
+                        }}
+                    }}
+                }}
+                if (!best) return null;
+                const r = best.getBoundingClientRect();
+                return {{cx: Math.round(r.x+r.width/2), cy: Math.round(r.y+r.height/2)}};
+            }}""",
+        )
+        return target
+
+    return SelectorStrategy(
+        name=f"anchor('{anchor_text}')+offset",
+        locate=locate,
+        confidence=0.7,
+    )
 
 SIXIN_TRIGGER = [
-    _treewalker_text("通知"),
     _treewalker_text("私信"),
-    _treewalker_text("消息"),
+    _anchor_offset("私信（右边第一个按钮）", "通知"),
 ]
 
 PANEL_STRATEGIES = [
